@@ -6,6 +6,6 @@ import (
 
 func TestParseTree(t *testing.T) {
 
-	parseProject("/Users/lishaopeng/go/src/github.com/crimsonlock/gitview")
+	parseProject("/Users/lishaopeng/go/src/github.com/crimsonlock/goinsight")
 
 }
