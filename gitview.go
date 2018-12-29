@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -12,12 +11,14 @@ import (
 
 type object struct {
 	mod string //commit,tree,blob,tag
-	name string
-	hash string
-	children []*object
-	regCts [][]string
-	length int
-	level int
+	hash string //hash string
+	children []*object //child
+	regCts [][]string //regexp rs for text
+	length int //text length
+	level int //tree level
+	name string //display name when draw
+	top float64 //top px when draw
+	left float64 //left px when draw
 }
 
 /*
@@ -63,7 +64,7 @@ func fixMap(objs map[string]*object){
 		case "commit":
 			obj.name = "[commit]"
 			obj.children = append(obj.children, objs[obj.regCts[0][1]])
-			objs[obj.regCts[0][1]    ].name = "[root]"
+			objs[obj.regCts[0][1]].name = "[root]"
 		case "tree":
 			for _,al := range obj.regCts {
 				obj.children = append(obj.children,objs[al[2]])
@@ -78,15 +79,17 @@ func fixMap(objs map[string]*object){
 
 }
 
-func readObjects(path string) map[string]*object {
+func readObjects(path string) (map[string]*object,[]string) {
 
 	//
 	objs := make(map[string]*object)
+	hashs := []string{}
 
 	//Check git path exsit
-	_, err := os.Stat(path+"/.git")
+
+	_, err := os.Stat(path+string(os.PathSeparator)+".git")
 	if err != nil && os.IsNotExist(err) {
-		return nil
+		return nil,nil
 	}
 
 	//Change dir for git commands
@@ -95,7 +98,7 @@ func readObjects(path string) map[string]*object {
 	//Cat all obejcts
 	rs , err := exec.Command("git","cat-file","--batch-check","--batch-all-objects").Output()
 	if err !=  nil{
-		return nil
+		return nil,nil
 	}
 	cts := string(rs)
 
@@ -110,6 +113,7 @@ func readObjects(path string) map[string]*object {
 
 	for _,line := range lines{
 
+		hashs = append(hashs,line[1])
 		ot,_ := exec.Command("git","cat-file","-p",line[1]).Output()
 		content := string(ot)
 
@@ -152,54 +156,25 @@ func readObjects(path string) map[string]*object {
 
 	}
 
-	return objs
+	return objs,hashs
 
 }
 
-func parseProject(path string) {
 
-	mp := readObjects(path)
+func parseProject(path string) (map[string]*object,[]string){
+
+	mp,hashs := readObjects(path)
+	if mp==nil{
+		return nil,nil
+	}
+
 	fixMap(mp)
-
 	for _,m:=range mp{
 		setChildrenLevel(m)
 	}
 
-	for _,kl:=range mp{
-		fmt.Printf("%+v\n",kl)
-	}
-
-	//fis,_:=ioutil.ReadDir(path+"/.git/objects")
-
-	/*
-	for _,fi := range fis{
-
-		if fi.Name()!="pack" && fi.Name()!="info"{
-
-			ffis,_ := ioutil.ReadDir(path+"/.git/objects/"+fi.Name())
-			for _,ffi := range ffis{
-				//cts,_ := ioutil.ReadFile(path+"/.git/objects/"+fi.Name()+"/"+ffi.Name())
-				//fmt.Println(string(cts))
-				//exec.CommandContext()
-				rs ,err := exec.Command("git","cat-file","-p",fi.Name()+ffi.Name()).Output()
-				if err !=nil{
-					fmt.Println(err.Error())
-				}else {
-					fmt.Printf("%s\n=========\n",rs)
-				}
-
-			}
-
-
-		}
-
-
-	}
-	*/
+	return mp,hashs
 
 }
 
 
-func main(){
-
-}
