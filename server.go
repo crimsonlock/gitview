@@ -46,7 +46,7 @@ p{margin:5px;padding:0px;text-align:center;font-size:14px}
 	//read objects
 	mp, hashs := parseProject(string(os.PathSeparator) + pp)
 	if mp == nil {
-		fmt.Fprintf(response, "%s<p>Bad project path : %c%s</p></body></html>", cts, os.PathSeparator, pp)
+		fmt.Fprintf(response, "%s<p>Bad project path : %c%s</p><p>Usage sample: http://127.0.0.1:8802/?path=Users|lishaopeng|go|src|github.com|crimsonlock|gitview</p></body></html>", cts, os.PathSeparator, pp)
 		return
 	}
 
@@ -90,7 +90,7 @@ func drawLine(o1 *object, o2 *object) string {
 	} else {
 		rot = 180.0 * math.Atan(-150/(o1.left-o2.left)) / math.Pi
 	}
-	
+
 	return fmt.Sprintf("<div class='line' style='top:%dpx;left:%dpx;width:%dpx;-webkit-transform:rotate(%fdeg);'></div>\n", top, left, int(length), rot)
 }
 
