@@ -11,7 +11,7 @@ func TestParseTree(t *testing.T) {
 
 }
 
-func TestMath(t *testing.T){
-	rot := (280-100)/(400-350)
+func TestMath(t *testing.T) {
+	rot := (280 - 100) / (400 - 350)
 	fmt.Println(rot)
 }
