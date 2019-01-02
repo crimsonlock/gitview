@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -27,6 +29,9 @@ func setChildrenLevel(obj *object) {
 		return
 	}
 
+	if obj.mod == "commit" {
+		obj.level = -1
+	}
 	i := obj.level - 1
 	for _, chi := range obj.children {
 		chi.level = i
@@ -49,9 +54,11 @@ func fixMap(objs map[string]*object) {
 		case "tree":
 			for _, al := range obj.regCts {
 				obj.children = append(obj.children, objs[al[2]])
-				objs[al[2]].name = al[3]
+				objs[al[2]].name = fmt.Sprintf("[%s] %s", objs[al[2]].mod, al[3])
 			}
 		case "tag":
+			obj.name = "[Tag] " + obj.regCts[0][2]
+			obj.children = append(obj.children, objs[obj.regCts[0][1]])
 
 		}
 
@@ -89,6 +96,7 @@ func readObjects(path string) (map[string]*object, []string) {
 	regLines, _ := regexp.Compile(`([0-9a-z]+)\s(commit|blob|tree|tag)\s([\d]+)\n`)
 	regCommit, _ := regexp.Compile(`tree\s([0-9a-z]+)\n`)
 	regTree, _ := regexp.Compile(`[\d]+\s(commit|blob|tree|tag)\s([0-9a-z]+)[\s]+([\S]+)\n`)
+	regTag, _ := regexp.Compile(`object\s([0-9a-z]+)\ntype\s[a-z]+\ntag\s([\S]+)`)
 
 	lines := regLines.FindAllStringSubmatch(cts, -1)
 	for _, line := range lines {
@@ -128,11 +136,39 @@ func readObjects(path string) (map[string]*object, []string) {
 				length: i,
 			}
 			objs[line[1]] = obj
-
 		case "tag":
-
+			i, _ := strconv.Atoi(line[3])
+			s := regTag.FindAllStringSubmatch(content, -1)
+			obj := &object{
+				mod:    "tag",
+				hash:   line[1],
+				regCts: s,
+				length: i,
+			}
+			objs[line[1]] = obj
 		}
 
+	}
+
+	//read pointers from .git/refs/heads
+	hdpath := path + string(os.PathSeparator) + ".git" + string(os.PathSeparator) + "refs" + string(os.PathSeparator) + "heads"
+	fs, _ := ioutil.ReadDir(hdpath)
+
+	for _,v := range fs{
+
+		hashs = append(hashs, "branch"+v.Name())
+
+		cts,_ := ioutil.ReadFile(hdpath + string(os.PathSeparator) + v.Name())
+
+
+		obj :=&object{
+			mod:    "pointer",
+			hash:   "heads/"+v.Name(),
+			name: 	"heads/"+v.Name(),
+			children: []*object{objs[string(cts[0:40])]},
+		}
+
+		objs["branch"+v.Name()] = obj
 	}
 
 	return objs, hashs

@@ -5,7 +5,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"strings"
 )
 
 func init() {
@@ -23,11 +22,13 @@ func htmlProject(response http.ResponseWriter, request *http.Request) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style type="text/css">
 div{padding:0}	
+.tag{height:50px;width:150px;border:1px solid black;position:absolute}
+.pointer{height:50px;width:150px;border:1px solid black;position:absolute}
 .commit{height:50px;width:150px;border:1px solid black;position:absolute}
 .tree{height:50px;width:150px;border:1px solid black;position:absolute}
 .blob{height:50px;width:150px;border:1px solid black;position:absolute}	
 .line{background-color:black;height:1px;position:absolute}	
-p{margin:5px;padding:0px;text-align:center;font-size:14px}	
+p{margin:5px;padding:0px;text-align:center;font-size:14px;}	
 </style>
 </head>
 <body>`
@@ -40,13 +41,13 @@ p{margin:5px;padding:0px;text-align:center;font-size:14px}
 	path, ok := request.Form["path"]
 	pp := ""
 	if ok {
-		pp = strings.Replace(path[0], "|", string(os.PathSeparator), -1)
+		pp = path[0]
 	}
 
 	//read objects
 	mp, hashs := parseProject(string(os.PathSeparator) + pp)
 	if mp == nil {
-		fmt.Fprintf(response, "%s<p>Bad project path : %c%s</p><p>Usage sample: http://127.0.0.1:8802/?path=Users|lishaopeng|go|src|github.com|crimsonlock|gitview</p></body></html>", cts, os.PathSeparator, pp)
+		fmt.Fprintf(response, "%s<p>Bad project path : %c%s</p><p>Usage sample: http://127.0.0.1:8802/?path=/Users/lishaopeng/go/src/github.com/crimsonlock/gitview</p></body></html>", cts, os.PathSeparator, pp)
 		return
 	}
 
