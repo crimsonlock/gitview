@@ -47,7 +47,7 @@ p{margin:5px;padding:0px;text-align:center;font-size:14px;}
 	//read objects
 	mp, hashs := parseProject(string(os.PathSeparator) + pp)
 	if mp == nil {
-		fmt.Fprintf(response, "%s<p>Bad project path : %c%s</p><p>Usage sample: http://127.0.0.1:8802/?path=/Users/lishaopeng/go/src/github.com/crimsonlock/gitview</p></body></html>", cts, os.PathSeparator, pp)
+		fmt.Fprintf(response, "%s<p>Bad project path, no .git found in the given path: %c%s</p><p>Usage sample: http://127.0.0.1:8802/?path=/Users/lishaopeng/go/src/github.com/crimsonlock/gitview</p></body></html>", cts, os.PathSeparator, pp)
 		return
 	}
 
